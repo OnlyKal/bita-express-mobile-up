@@ -83,7 +83,7 @@ class AppContainer extends StatelessWidget {
   final VoidCallback? onTap;
 
   const AppContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.backgroundColor,
     this.padding,
@@ -93,7 +93,7 @@ class AppContainer extends StatelessWidget {
     this.borderColor,
     this.borderWidth = 1.0,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +131,7 @@ class AppButton extends StatelessWidget {
   final IconData? icon;
 
   const AppButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.backgroundColor,
@@ -140,7 +140,7 @@ class AppButton extends StatelessWidget {
     this.width,
     this.isOutlined = false,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

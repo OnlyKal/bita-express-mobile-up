@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'session.dart';
 import 'user/profile.dart';
 import 'func.dart';
@@ -13,7 +14,7 @@ import 'services/location_service.dart';
 import 'services/frequent_destinations_service.dart';
 import 'services/vehicle_location_service.dart';
 import 'models/place.dart';
-import 'navigation_map.dart';
+import 'pages/vehicle_type_selection_page.dart';
 import 'api.dart';
 import 'pages/vehicle_page.dart';
 import 'pages/driver_map_page.dart';
@@ -100,24 +101,67 @@ class _HomePageState extends State<HomePage> {
     // Recharger les destinations fréquentes
     await _loadFrequentDestinations();
 
-    // Naviguer vers la page de navigation avec la carte
-    print('Navigation vers NavigationMapPage avec:');
-    print('  destinationLatitude: ${destination.latitude}');
-    print('  destinationLongitude: ${destination.longitude}');
-    print('  destinationTitle: ${destination.title}');
-    print('  destinationSubtitle: ${destination.subtitle}');
+    // Obtenir la position actuelle pour calculer la distance
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NavigationMapPage(
-          destinationLatitude: destination.latitude,
-          destinationLongitude: destination.longitude,
-          destinationTitle: destination.title,
-          destinationSubtitle: destination.subtitle,
-        ),
-      ),
-    );
+      double distance = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        destination.latitude,
+        destination.longitude,
+      );
+
+      // Naviguer vers la page de sélection du type de véhicule
+      print('Navigation vers VehicleTypeSelectionPage avec:');
+      print('  destinationLatitude: ${destination.latitude}');
+      print('  destinationLongitude: ${destination.longitude}');
+      print('  destinationTitle: ${destination.title}');
+      print('  destinationSubtitle: ${destination.subtitle}');
+      print('  departLatitude: ${position.latitude}');
+      print('  departLongitude: ${position.longitude}');
+      print('  distanceMeters: $distance');
+
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VehicleTypeSelectionPage(
+              destinationLatitude: destination.latitude,
+              destinationLongitude: destination.longitude,
+              destinationTitle: destination.title,
+              destinationSubtitle: destination.subtitle,
+              departLatitude: position.latitude,
+              departLongitude: position.longitude,
+              distanceMeters: distance,
+              durationSeconds: 0,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erreur lors de l\'obtention de la position actuelle: $e');
+      // Fallback: naviguer directement sans distance
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VehicleTypeSelectionPage(
+              destinationLatitude: destination.latitude,
+              destinationLongitude: destination.longitude,
+              destinationTitle: destination.title,
+              destinationSubtitle: destination.subtitle,
+              departLatitude: 0,
+              departLongitude: 0,
+              distanceMeters: 0,
+              durationSeconds: 0,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildDestinationItem({
@@ -321,7 +365,7 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedCurrency,
+                initialValue: selectedCurrency,
                 decoration: InputDecoration(
                   labelText: 'Devise',
                   border: OutlineInputBorder(
@@ -560,7 +604,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        '${_formatDate(data['date_modification'])}',
+                        _formatDate(data['date_modification']),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -673,7 +717,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   },
-                  icon: Icon(Icons.history, color: AppColors.mainColor),
+                  icon: Icon(
+                    Icons.format_align_justify,
+                    color: AppColors.mainColor,
+                  ),
                   tooltip: 'Mes courses',
                 );
               }
@@ -691,7 +738,6 @@ class _HomePageState extends State<HomePage> {
                 future: SessionManager.getUserData(),
                 builder: (context, snapshot) {
                   final userData = snapshot.data;
-                  print('FutureBuilder UserData: $userData');
                   return Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -1240,24 +1286,66 @@ class _DestinationSearchModalState extends State<DestinationSearchModal> {
       homeState?._loadFrequentDestinations();
     }
 
-    // Naviguer vers la page de navigation avec la carte
-    print('Navigation vers NavigationMapPage depuis recherche avec:');
-    print('  destinationLatitude: $latitude');
-    print('  destinationLongitude: $longitude');
-    print('  destinationTitle: $title');
-    print('  destinationSubtitle: $subtitle');
+    // Obtenir la position actuelle pour calculer la distance
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NavigationMapPage(
-          destinationLatitude: latitude,
-          destinationLongitude: longitude,
-          destinationTitle: title,
-          destinationSubtitle: subtitle,
-        ),
-      ),
-    );
+      double distance = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        latitude,
+        longitude,
+      );
+
+      // Naviguer vers la page de sélection du type de véhicule
+      print('Navigation vers VehicleTypeSelectionPage depuis recherche avec:');
+      print('  destinationLatitude: $latitude');
+      print('  destinationLongitude: $longitude');
+      print('  departLatitude: ${position.latitude}');
+      print('  departLongitude: ${position.longitude}');
+      print('  distanceMeters: $distance');
+
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VehicleTypeSelectionPage(
+              destinationLatitude: latitude,
+              destinationLongitude: longitude,
+              destinationTitle: title,
+              destinationSubtitle: subtitle,
+              departLatitude: position.latitude,
+              departLongitude: position.longitude,
+              distanceMeters: distance,
+              durationSeconds:
+                  0, // Will be calculated by OSRM in navigation_map
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erreur lors de l\'obtention de la position actuelle: $e');
+      // Fallback: naviguer directement sans distance
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VehicleTypeSelectionPage(
+              destinationLatitude: latitude,
+              destinationLongitude: longitude,
+              destinationTitle: title,
+              destinationSubtitle: subtitle,
+              departLatitude: 0,
+              departLongitude: 0,
+              distanceMeters: 0,
+              durationSeconds: 0,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   void _openMapModal() {
@@ -1293,24 +1381,67 @@ class _DestinationSearchModalState extends State<DestinationSearchModal> {
             final homeState = context.findAncestorStateOfType<_HomePageState>();
             homeState?._loadFrequentDestinations();
 
-            // Naviguer vers la page de navigation avec la carte
-            print('Navigation vers NavigationMapPage depuis carte avec:');
-            print('  destinationLatitude: ${location.latitude}');
-            print('  destinationLongitude: ${location.longitude}');
-            print('  destinationTitle: $shortTitle');
-            print('  destinationSubtitle: $shortSubtitle');
+            // Obtenir la position actuelle pour calculer la distance
+            try {
+              final Position position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.high,
+              );
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NavigationMapPage(
-                  destinationLatitude: location.latitude,
-                  destinationLongitude: location.longitude,
-                  destinationTitle: shortTitle,
-                  destinationSubtitle: shortSubtitle,
-                ),
-              ),
-            );
+              double distance = Geolocator.distanceBetween(
+                position.latitude,
+                position.longitude,
+                location.latitude,
+                location.longitude,
+              );
+
+              // Naviguer vers la page de sélection du type de véhicule
+              print(
+                'Navigation vers VehicleTypeSelectionPage depuis carte avec:',
+              );
+              print('  destinationLatitude: ${location.latitude}');
+              print('  destinationLongitude: ${location.longitude}');
+              print('  departLatitude: ${position.latitude}');
+              print('  departLongitude: ${position.longitude}');
+              print('  distanceMeters: $distance');
+
+              if (context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VehicleTypeSelectionPage(
+                      destinationLatitude: location.latitude,
+                      destinationLongitude: location.longitude,
+                      destinationTitle: shortTitle,
+                      destinationSubtitle: shortSubtitle,
+                      departLatitude: position.latitude,
+                      departLongitude: position.longitude,
+                      distanceMeters: distance,
+                      durationSeconds: 0,
+                    ),
+                  ),
+                );
+              }
+            } catch (e) {
+              print('Erreur lors de l\'obtention de la position actuelle: $e');
+              // Fallback: naviguer directement sans distance
+              if (context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VehicleTypeSelectionPage(
+                      destinationLatitude: location.latitude,
+                      destinationLongitude: location.longitude,
+                      destinationTitle: shortTitle,
+                      destinationSubtitle: shortSubtitle,
+                      departLatitude: 0,
+                      departLongitude: 0,
+                      distanceMeters: 0,
+                      durationSeconds: 0,
+                    ),
+                  ),
+                );
+              }
+            }
           },
         ),
       ),

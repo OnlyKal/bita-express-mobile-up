@@ -6,7 +6,6 @@ String flextoken =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJcL2xvZ2luIiwicm9sZXMiOlsiTUVSQ0hBTlQiXSwiZXhwIjoxODE1NTcyMDYyLCJzdWIiOiI0MjY1OGVlNmE5MDYxOTkxZDM3NmM1ZDNiM2U1NGFhZSJ9.YcwgTZZbw5HBV_JV6VaHHE1KDa_r-MeuJD-fgYyl6eo";
 
 class ApiService {
-  // Configuration de l'API
   static const String baseUrl = AppConfig.apiBaseUrl;
   static const Map<String, String> headers = {
     'Content-Type': 'application/json',
@@ -23,10 +22,7 @@ class ApiService {
 
   /// Modèle de réponse API
   static Map<String, String> getAuthHeaders(String token) {
-    return {
-      ...headers,
-      'Authorization': token, // Le token contient déjà "Bearer "
-    };
+    return {...headers, 'Authorization': token};
   }
 
   /// Connexion utilisateur (email ou username + password)
@@ -1075,7 +1071,10 @@ class ApiService {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        final int status = _safeParseInt(responseData['transaction']?['status'], defaultValue: -1);
+        final int status = _safeParseInt(
+          responseData['transaction']?['status'],
+          defaultValue: -1,
+        );
         final bool isSuccess = status == 0;
 
         print('Status transaction: $status');

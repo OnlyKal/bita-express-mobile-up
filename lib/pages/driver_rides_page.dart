@@ -5,7 +5,7 @@ import '../session.dart';
 import '../colors.dart';
 
 class DriverRidesPage extends StatefulWidget {
-  const DriverRidesPage({Key? key}) : super(key: key);
+  const DriverRidesPage({super.key});
 
   @override
   State<DriverRidesPage> createState() => _DriverRidesPageState();
@@ -666,10 +666,12 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
+                child: const Icon(
+                  Icons.directions_car,
+                  color: Colors.white,
+                  size: 24,
                 ),
-                child: const Icon(Icons.directions_car, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
               const Column(
@@ -686,10 +688,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                   ),
                   Text(
                     'Suivi et historique',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),

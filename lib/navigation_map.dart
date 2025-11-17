@@ -4,16 +4,23 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'colors.dart';
 import 'api.dart';
 import 'session.dart';
+import 'pages/ride_tracking_page.dart';
 
 class NavigationMapPage extends StatefulWidget {
   final double destinationLatitude;
   final double destinationLongitude;
   final String destinationTitle;
   final String destinationSubtitle;
+  final String? vehicleTypeFilter;
+  final double? departLatitude;
+  final double? departLongitude;
+  final double? distanceMeters;
+  final double? durationSeconds;
 
   const NavigationMapPage({
     super.key,
@@ -21,6 +28,11 @@ class NavigationMapPage extends StatefulWidget {
     required this.destinationLongitude,
     required this.destinationTitle,
     required this.destinationSubtitle,
+    this.vehicleTypeFilter,
+    this.departLatitude,
+    this.departLongitude,
+    this.distanceMeters,
+    this.durationSeconds,
   });
 
   @override
@@ -51,6 +63,9 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
   final Map<String, PricingModel?> _vehiclePricing = {};
   final Map<String, bool> _loadingPricing = {};
 
+  // Flag pour suivre si le véhicule le plus proche a déjà été affiché
+  bool _closestVehicleShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -72,8 +87,127 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
     }
 
     _getCurrentLocation();
-    _loadVehicles();
+    _loadVehicles().then((_) {
+      // Lancer automatiquement la navigation avec le premier véhicule
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted && _vehicles.isNotEmpty) {
+          _autoStartNavigation();
+        }
+      });
+    });
     _startVehicleRefreshTimer();
+  }
+
+  /// Lance automatiquement la navigation avec le premier véhicule disponible
+  Future<void> _autoStartNavigation() async {
+    if (_vehicles.isEmpty) return;
+
+    try {
+      final vehicle = _vehicles.first;
+      print('Navigation automatique avec le véhicule: ${vehicle.marque} ${vehicle.modele}');
+
+      // Récupérer les données utilisateur
+      final userData = await SessionManager.getUserData();
+      final token = await SessionManager.getToken();
+
+      if (userData == null || token == null) {
+        print('Erreur: Authentification non disponible');
+        return;
+      }
+
+      if (_currentLocation == null) {
+        print('Erreur: Position actuelle non disponible');
+        return;
+      }
+
+      if (_routeDistance == 0 || _routeDuration == 0) {
+        print('Erreur: Route non calculée');
+        return;
+      }
+
+      // Récupérer la tarification
+      String vehicleKey = '${vehicle.id}';
+      PricingModel? pricing = _vehiclePricing[vehicleKey];
+
+      if (pricing == null) {
+        print('Erreur: Tarification non disponible');
+        return;
+      }
+
+      // Afficher un dialogue de chargement
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
+                Text(
+                  'Création de la course...',
+                  style: TextStyle(color: Colors.grey[800]),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      // Créer la demande de course sans confirmation
+      final response = await ApiService.createRide(
+        token: token,
+        passagerId: userData['id'] ?? 0,
+        departLatitude: _currentLocation!.latitude,
+        departLongitude: _currentLocation!.longitude,
+        destinationLatitude: widget.destinationLatitude,
+        destinationLongitude: widget.destinationLongitude,
+        distance: _routeDistance,
+        dureeEstimee: _routeDuration,
+        prixEstime: pricing.prixCdf,
+      );
+
+      if (response.success) {
+        print('Course créée automatiquement: ${response.data}');
+
+        // Extraire l'ID de la course créée
+        int? rideId;
+        if (response.data is Map<String, dynamic>) {
+          rideId = response.data['id'] ?? response.data['course_id'];
+        } else if (response.data is int) {
+          rideId = response.data as int;
+        }
+
+        if (rideId != null && mounted) {
+          // Fermer le loading dialog
+          Navigator.pop(context);
+          
+          // Naviguer vers RideTrackingPage avec le vrai rideId
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => RideTrackingPage(rideId: rideId!),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          Navigator.pop(context); // Fermer le loading dialog
+          _showErrorSnackBar('Erreur: ${response.message}');
+        }
+      }
+    } catch (e) {
+      print('Erreur lors du lancement de la navigation automatique: $e');
+      if (mounted) {
+        Navigator.pop(context); // S'assurer de fermer le loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// Démarre le timer de rafraîchissement automatique des véhicules
@@ -222,13 +356,33 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
 
         if (response.success && response.data != null) {
           setState(() {
+            List<VehicleModel> allVehicles = [];
             if (response.data is List) {
-              _vehicles = (response.data as List)
+              allVehicles = (response.data as List)
                   .map((json) => VehicleModel.fromJson(json))
                   .toList();
             } else if (response.data is Map<String, dynamic>) {
-              _vehicles = [VehicleModel.fromJson(response.data)];
+              allVehicles = [VehicleModel.fromJson(response.data)];
             }
+
+            // Appliquer le filtrage par type de véhicule si fourni
+            if (widget.vehicleTypeFilter != null &&
+                widget.vehicleTypeFilter!.isNotEmpty) {
+              _vehicles = allVehicles
+                  .where(
+                    (vehicle) =>
+                        vehicle.typeVehicule.toLowerCase() ==
+                        widget.vehicleTypeFilter!.toLowerCase(),
+                  )
+                  .toList();
+              print(
+                'Véhicules filtrés par type "${widget.vehicleTypeFilter}": ${_vehicles.length}',
+              );
+            } else {
+              _vehicles = allVehicles;
+              print('Pas de filtrage - tous les véhicules affichés');
+            }
+
             _isLoadingVehicles = false;
           });
           if (showLoading) {
@@ -279,6 +433,51 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
       default:
         return 'assets/vehicules/voiture.png'; // Par défaut
     }
+  }
+
+  /// Trouve le véhicule le plus proche de la position actuelle
+  /// Retourne le véhicule le plus proche ou null si aucun véhicule n'est disponible
+  VehicleModel? _findClosestVehicle() {
+    if (_currentLocation == null || _vehicles.isEmpty) {
+      return null;
+    }
+
+    VehicleModel? closestVehicle;
+    double closestDistance = double.infinity;
+
+    for (var vehicle in _vehicles) {
+      final distance = _calculateDistanceBetweenPoints(
+        _currentLocation!.latitude,
+        _currentLocation!.longitude,
+        vehicle.latitude,
+        vehicle.longitude,
+      );
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestVehicle = vehicle;
+      }
+    }
+
+    print(
+      'Véhicule le plus proche trouvé: ${closestVehicle?.marque} ${closestVehicle?.modele} (${closestDistance.toStringAsFixed(2)} km)',
+    );
+    return closestVehicle;
+  }
+
+  /// Calcule la distance entre deux coordonnées en kilomètres (formule Haversine)
+  double _calculateDistanceBetweenPoints(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const p = 0.017453292519943295;
+    final a =
+        0.5 -
+        cos((lat2 - lat1) * p) / 2 +
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
   /// Génère les markers des véhicules
@@ -457,24 +656,54 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
                       snapshot.data!['type_utilisateur'] == 'passager') {
                     return SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await _createRideRequest(vehicle);
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.mainColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.mainColor,
+                              AppColors.mainColor.withValues(alpha: 0.85),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.mainColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'Demander une course',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _createRideRequest(vehicle);
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check_circle_outline, size: 20),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Demander une course',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -577,6 +806,29 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
       if (response.success) {
         _showSuccessSnackBar(response.message);
         print('Course créée avec succès: ${response.data}');
+
+        // Naviguer vers la page de suivi de la course
+        if (mounted) {
+          // Récupérer l'ID de la course créée
+          int? rideId;
+          if (response.data is Map<String, dynamic>) {
+            rideId = response.data['id'] ?? response.data['course_id'];
+          } else if (response.data is int) {
+            rideId = response.data as int;
+          }
+
+          if (rideId != null && mounted) {
+            // Attendre 1 seconde avant de naviguer pour que le snackbar s'affiche
+            await Future.delayed(const Duration(seconds: 1));
+            if (mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => RideTrackingPage(rideId: rideId!),
+                ),
+              );
+            }
+          }
+        }
       } else {
         _showErrorSnackBar('Erreur: ${response.message}');
       }
@@ -603,22 +855,15 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
               Text('Véhicule: ${vehicle.marque} ${vehicle.modele}'),
               Text('Type: ${vehicle.typeVehicule}'),
               Text('Confort: ${vehicle.confort}'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Distance: ${(_routeDistance / 1000).toStringAsFixed(1)} km',
               ),
               Text('Durée: ${(_routeDuration / 60).toStringAsFixed(0)} min'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                'Prix: ${pricing.prixCdf.toStringAsFixed(0)} CDF',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '(≈ \$${pricing.prixUsd.toStringAsFixed(2)})',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                'Prix: ${pricing.prixCdf.toStringAsFixed(0)} CDF (≈ \$${pricing.prixUsd.toStringAsFixed(2)})',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -629,13 +874,7 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mainColor,
-              ),
-              child: const Text(
-                'Confirmer',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Confirmer'),
             ),
           ],
         );
@@ -1042,6 +1281,22 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
 
           print('Route calculée: ${_routeDistance}m, ${_routeDuration}s');
           print('Points de route: ${_routePoints.length}');
+
+          // Trouver et afficher le véhicule le plus proche si un filtre de type est appliqué
+          // ou afficher automatiquement le plus proche après le calcul de la route
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted && !_closestVehicleShown && _vehicles.isNotEmpty) {
+            final closestVehicle = _findClosestVehicle();
+            if (closestVehicle != null) {
+              setState(() {
+                _closestVehicleShown = true;
+              });
+              // Afficher les détails du véhicule le plus proche automatiquement
+              if (mounted) {
+                _showVehicleDetails(closestVehicle);
+              }
+            }
+          }
         } else {
           setState(() {
             _isLoadingRoute = false;
@@ -1101,10 +1356,12 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
+                child: const Icon(
+                  Icons.navigation,
+                  color: Colors.white,
+                  size: 24,
                 ),
-                child: const Icon(Icons.navigation, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1124,10 +1381,7 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
                     ),
                     const Text(
                       'Navigation GPS',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),

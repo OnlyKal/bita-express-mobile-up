@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import '../api.dart';
 import '../session.dart';
 import '../colors.dart';
@@ -401,7 +400,7 @@ class _DriverEvaluationsPageState extends State<DriverEvaluationsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Row(
                         children: [
-                          Container(
+                          SizedBox(
                             width: 24,
                             child: Text(
                               '$rating',
@@ -434,7 +433,7 @@ class _DriverEvaluationsPageState extends State<DriverEvaluationsPage> {
                             ),
                           ),
                           SizedBox(width: 12),
-                          Container(
+                          SizedBox(
                             width: 32,
                             child: Text(
                               '$count',
@@ -762,9 +761,7 @@ class _DriverEvaluationsPageState extends State<DriverEvaluationsPage> {
           backgroundColor: Colors.white,
           elevation: 0,
           flexibleSpace: Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-            ),
+            decoration: BoxDecoration(color: AppColors.primary),
           ),
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
@@ -825,9 +822,7 @@ class _DriverEvaluationsPageState extends State<DriverEvaluationsPage> {
       ),
       body: _isLoading
           ? Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-              ),
+              decoration: BoxDecoration(color: AppColors.background),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -876,9 +871,7 @@ class _DriverEvaluationsPageState extends State<DriverEvaluationsPage> {
             )
           : _error != null
           ? Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-              ),
+              decoration: BoxDecoration(color: AppColors.background),
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),

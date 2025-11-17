@@ -20,7 +20,6 @@ class _SignInPageState extends State<SignInPage> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -288,24 +287,10 @@ class _SignInPageState extends State<SignInPage> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 12),
 
-                          // Se souvenir de moi et mot de passe oublié
+                          // Mot de passe oublié
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _rememberMe,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _rememberMe = value ?? false;
-                                      });
-                                    },
-                                    activeColor: AppColors.mainColor,
-                                  ),
-                                  const Text('Se souvenir de moi'),
-                                ],
-                              ),
                               TextButton(
                                 onPressed: () {
                                   _showError('Fonctionnalité à venir');

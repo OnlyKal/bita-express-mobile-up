@@ -69,8 +69,11 @@ class _DriverEvaluationWidgetState extends State<DriverEvaluationWidget> {
           SnackBar(
             content: Row(
               children: [
-                Icon(CupertinoIcons.check_mark_circled_solid, 
-                     color: Colors.white, size: 16),
+                Icon(
+                  CupertinoIcons.check_mark_circled_solid,
+                  color: Colors.white,
+                  size: 16,
+                ),
                 SizedBox(width: 8),
                 Expanded(child: Text(response.message)),
               ],
@@ -89,8 +92,11 @@ class _DriverEvaluationWidgetState extends State<DriverEvaluationWidget> {
           SnackBar(
             content: Row(
               children: [
-                Icon(CupertinoIcons.xmark_circle_fill, 
-                     color: Colors.white, size: 16),
+                Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  color: Colors.white,
+                  size: 16,
+                ),
                 SizedBox(width: 8),
                 Expanded(child: Text(response.message)),
               ],
@@ -104,8 +110,11 @@ class _DriverEvaluationWidgetState extends State<DriverEvaluationWidget> {
         SnackBar(
           content: Row(
             children: [
-              Icon(CupertinoIcons.exclamationmark_triangle_fill, 
-                   color: Colors.white, size: 16),
+              Icon(
+                CupertinoIcons.exclamationmark_triangle_fill,
+                color: Colors.white,
+                size: 16,
+              ),
               SizedBox(width: 8),
               Expanded(child: Text('Erreur: ${e.toString()}')),
             ],
@@ -132,8 +141,9 @@ class _DriverEvaluationWidgetState extends State<DriverEvaluationWidget> {
           ),
         ),
         SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          spacing: 8,
+          alignment: WrapAlignment.center,
           children: List.generate(5, (index) {
             final starNumber = index + 1;
             return GestureDetector(
@@ -143,10 +153,10 @@ class _DriverEvaluationWidgetState extends State<DriverEvaluationWidget> {
                 });
               },
               child: Container(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(6),
                 child: Icon(
                   Icons.star,
-                  size: 40,
+                  size: 32,
                   color: starNumber <= _selectedRating
                       ? Colors.amber
                       : Colors.grey[300],

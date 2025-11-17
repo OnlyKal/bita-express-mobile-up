@@ -8,7 +8,7 @@ import '../colors.dart';
 class PaymentPage extends StatefulWidget {
   final RideModel ride;
 
-  const PaymentPage({Key? key, required this.ride}) : super(key: key);
+  const PaymentPage({super.key, required this.ride});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -457,7 +457,7 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildPayButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
@@ -561,9 +561,7 @@ class _PaymentPageState extends State<PaymentPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                ),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
                 child: const Icon(Icons.payment, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
@@ -581,10 +579,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                   Text(
                     'Mobile Money sécurisé',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),

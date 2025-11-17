@@ -5,7 +5,7 @@ import '../session.dart';
 import '../colors.dart';
 
 class DriverCompletedRidesPage extends StatefulWidget {
-  const DriverCompletedRidesPage({Key? key}) : super(key: key);
+  const DriverCompletedRidesPage({super.key});
 
   @override
   State<DriverCompletedRidesPage> createState() =>
@@ -672,9 +672,7 @@ class _DriverCompletedRidesPageState extends State<DriverCompletedRidesPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                ),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
                 child: const Icon(Icons.history, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
@@ -692,10 +690,7 @@ class _DriverCompletedRidesPageState extends State<DriverCompletedRidesPage> {
                   ),
                   Text(
                     'Courses terminées',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),

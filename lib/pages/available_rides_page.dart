@@ -7,7 +7,7 @@ import '../session.dart';
 import '../colors.dart';
 
 class AvailableRidesPage extends StatefulWidget {
-  const AvailableRidesPage({Key? key}) : super(key: key);
+  const AvailableRidesPage({super.key});
 
   @override
   State<AvailableRidesPage> createState() => _AvailableRidesPageState();
@@ -374,10 +374,12 @@ class _AvailableRidesPageState extends State<AvailableRidesPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
+                child: const Icon(
+                  Icons.assignment,
+                  color: Colors.white,
+                  size: 24,
                 ),
-                child: const Icon(Icons.assignment, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
               const Column(
@@ -394,10 +396,7 @@ class _AvailableRidesPageState extends State<AvailableRidesPage> {
                   ),
                   Text(
                     'Demandes en attente',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),

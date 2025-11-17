@@ -95,10 +95,12 @@ class _VehiclePageState extends State<VehiclePage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
+                child: const Icon(
+                  Icons.directions_car,
+                  color: Colors.white,
+                  size: 24,
                 ),
-                child: const Icon(Icons.directions_car, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 12),
               const Column(
@@ -115,10 +117,7 @@ class _VehiclePageState extends State<VehiclePage> {
                   ),
                   Text(
                     'Gestion et suivi',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
@@ -142,9 +141,7 @@ class _VehiclePageState extends State<VehiclePage> {
 
   Widget _buildLoadingState() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-      ),
+      decoration: BoxDecoration(color: Colors.grey[50]),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -198,7 +195,10 @@ class _VehiclePageState extends State<VehiclePage> {
               children: [
                 // Badge de statut moderne
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -270,7 +270,10 @@ class _VehiclePageState extends State<VehiclePage> {
 
                 // Plaque d'immatriculation - Design réduit
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.mainColor,
                     borderRadius: BorderRadius.circular(12),
@@ -329,13 +332,33 @@ class _VehiclePageState extends State<VehiclePage> {
                 const SizedBox(height: 20),
                 Column(
                   children: [
-                    _buildModernInfoCard('Couleur', vehicle.couleur, Icons.palette, Colors.blue),
+                    _buildModernInfoCard(
+                      'Couleur',
+                      vehicle.couleur,
+                      Icons.palette,
+                      Colors.blue,
+                    ),
                     const SizedBox(height: 12),
-                    _buildModernInfoCard('Type', vehicle.typeVehicule, Icons.category, Colors.green),
+                    _buildModernInfoCard(
+                      'Type',
+                      vehicle.typeVehicule,
+                      Icons.category,
+                      Colors.green,
+                    ),
                     const SizedBox(height: 12),
-                    _buildModernInfoCard('Confort', vehicle.confort, Icons.star, Colors.orange),
+                    _buildModernInfoCard(
+                      'Confort',
+                      vehicle.confort,
+                      Icons.star,
+                      Colors.orange,
+                    ),
                     const SizedBox(height: 12),
-                    _buildModernInfoCard('Capacité', '${vehicle.capacite} places', Icons.people, Colors.purple),
+                    _buildModernInfoCard(
+                      'Capacité',
+                      '${vehicle.capacite} places',
+                      Icons.people,
+                      Colors.purple,
+                    ),
                   ],
                 ),
               ],
@@ -366,7 +389,9 @@ class _VehiclePageState extends State<VehiclePage> {
                       ),
                       child: Icon(
                         Icons.location_on_rounded,
-                        color: VehicleLocationService.isRunning ? Colors.green : Colors.orange,
+                        color: VehicleLocationService.isRunning
+                            ? Colors.green
+                            : Colors.orange,
                         size: 20,
                       ),
                     ),
@@ -382,7 +407,7 @@ class _VehiclePageState extends State<VehiclePage> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Statut de la localisation
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -404,7 +429,9 @@ class _VehiclePageState extends State<VehiclePage> {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: VehicleLocationService.isRunning ? Colors.green : Colors.orange,
+                          color: VehicleLocationService.isRunning
+                              ? Colors.green
+                              : Colors.orange,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -414,10 +441,14 @@ class _VehiclePageState extends State<VehiclePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              VehicleLocationService.isRunning ? 'Suivi activé' : 'Suivi désactivé',
+                              VehicleLocationService.isRunning
+                                  ? 'Suivi activé'
+                                  : 'Suivi désactivé',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: VehicleLocationService.isRunning ? Colors.green[700] : Colors.orange[700],
+                                color: VehicleLocationService.isRunning
+                                    ? Colors.green[700]
+                                    : Colors.orange[700],
                                 fontSize: 14,
                               ),
                             ),
@@ -448,16 +479,25 @@ class _VehiclePageState extends State<VehiclePage> {
             children: [
               Expanded(
                 child: _buildActionButton(
-                  label: VehicleLocationService.isRunning ? 'Arrêter le suivi' : 'Démarrer le suivi',
-                  icon: VehicleLocationService.isRunning ? Icons.pause_circle : Icons.play_circle,
-                  color: VehicleLocationService.isRunning ? Colors.red : Colors.green,
+                  label: VehicleLocationService.isRunning
+                      ? 'Arrêter le suivi'
+                      : 'Démarrer le suivi',
+                  icon: VehicleLocationService.isRunning
+                      ? Icons.pause_circle
+                      : Icons.play_circle,
+                  color: VehicleLocationService.isRunning
+                      ? Colors.red
+                      : Colors.green,
                   onTap: () async {
                     if (VehicleLocationService.isRunning) {
                       VehicleLocationService.stopLocationTracking();
                       _showSnackBar('Suivi de localisation arrêté', Colors.red);
                     } else {
                       await VehicleLocationService.startLocationTracking();
-                      _showSnackBar('Suivi de localisation démarré', Colors.green);
+                      _showSnackBar(
+                        'Suivi de localisation démarré',
+                        Colors.green,
+                      );
                     }
                     setState(() {});
                   },
@@ -478,7 +518,10 @@ class _VehiclePageState extends State<VehiclePage> {
                     ).then((result) {
                       if (result == true) {
                         _loadVehicle();
-                        _showSnackBar('Véhicule modifié avec succès', Colors.green);
+                        _showSnackBar(
+                          'Véhicule modifié avec succès',
+                          Colors.green,
+                        );
                       }
                     });
                   },
@@ -493,7 +536,12 @@ class _VehiclePageState extends State<VehiclePage> {
     );
   }
 
-  Widget _buildModernInfoCard(String title, String value, IconData icon, Color color) {
+  Widget _buildModernInfoCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -636,7 +684,10 @@ class _VehiclePageState extends State<VehiclePage> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(20),
@@ -689,11 +740,23 @@ class _VehiclePageState extends State<VehiclePage> {
             ),
             child: Column(
               children: [
-                _buildBenefit(Icons.monetization_on, 'Générez des revenus', Colors.green),
+                _buildBenefit(
+                  Icons.monetization_on,
+                  'Générez des revenus',
+                  Colors.green,
+                ),
                 const SizedBox(height: 16),
-                _buildBenefit(Icons.schedule, 'Travaillez à votre rythme', Colors.blue),
+                _buildBenefit(
+                  Icons.schedule,
+                  'Travaillez à votre rythme',
+                  Colors.blue,
+                ),
                 const SizedBox(height: 16),
-                _buildBenefit(Icons.people, 'Rejoignez notre communauté', Colors.purple),
+                _buildBenefit(
+                  Icons.people,
+                  'Rejoignez notre communauté',
+                  Colors.purple,
+                ),
               ],
             ),
           ),
@@ -703,9 +766,7 @@ class _VehiclePageState extends State<VehiclePage> {
           // Bouton d'ajout moderne avec design attrayant
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
             child: Material(
               color: AppColors.mainColor,
               borderRadius: BorderRadius.circular(20),
@@ -951,9 +1012,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                ),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.2)),
                 child: Icon(
                   widget.vehicle != null ? Icons.edit : Icons.add,
                   color: Colors.white,
@@ -966,7 +1025,9 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    widget.vehicle != null ? 'Modifier véhicule' : 'Ajouter véhicule',
+                    widget.vehicle != null
+                        ? 'Modifier véhicule'
+                        : 'Ajouter véhicule',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -974,11 +1035,10 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                     ),
                   ),
                   Text(
-                    widget.vehicle != null ? 'Mettre à jour les informations' : 'Configurer votre véhicule',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    widget.vehicle != null
+                        ? 'Mettre à jour les informations'
+                        : 'Configurer votre véhicule',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
@@ -1039,7 +1099,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
 
               // Marque
@@ -1137,7 +1197,10 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                 items: const [
                   DropdownMenuItem(value: 'basique', child: Text('⭐ Basique')),
                   DropdownMenuItem(value: 'confort', child: Text('⭐⭐ Confort')),
-                  DropdownMenuItem(value: 'premium', child: Text('⭐⭐⭐ Premium')),
+                  DropdownMenuItem(
+                    value: 'premium',
+                    child: Text('⭐⭐⭐ Premium'),
+                  ),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -1161,7 +1224,10 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                     : const [
                         DropdownMenuItem(value: 2, child: Text('👥 2 places')),
                         DropdownMenuItem(value: 4, child: Text('👪 4 places')),
-                        DropdownMenuItem(value: 5, child: Text('👨‍👩‍👧‍👦 5 places')),
+                        DropdownMenuItem(
+                          value: 5,
+                          child: Text('👨‍👩‍👧‍👦 5 places'),
+                        ),
                         DropdownMenuItem(value: 7, child: Text('🚐 7 places')),
                         DropdownMenuItem(value: 9, child: Text('🚌 9 places')),
                       ],
@@ -1280,7 +1346,9 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
-                                widget.vehicle != null ? Icons.update : Icons.add_circle,
+                                widget.vehicle != null
+                                    ? Icons.update
+                                    : Icons.add_circle,
                                 color: Colors.white,
                                 size: 24,
                               ),
@@ -1303,7 +1371,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -1378,7 +1446,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Container(
