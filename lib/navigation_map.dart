@@ -104,7 +104,9 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
 
     try {
       final vehicle = _vehicles.first;
-      print('Navigation automatique avec le véhicule: ${vehicle.marque} ${vehicle.modele}');
+      print(
+        'Navigation automatique avec le véhicule: ${vehicle.marque} ${vehicle.modele}',
+      );
 
       // Récupérer les données utilisateur
       final userData = await SessionManager.getUserData();
@@ -182,7 +184,7 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
         if (rideId != null && mounted) {
           // Fermer le loading dialog
           Navigator.pop(context);
-          
+
           // Naviguer vers RideTrackingPage avec le vrai rideId
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -201,10 +203,7 @@ class _NavigationMapPageState extends State<NavigationMapPage> {
       if (mounted) {
         Navigator.pop(context); // S'assurer de fermer le loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }
